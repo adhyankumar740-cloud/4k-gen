@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adhyan Studio Pro | Multi-Model Virtual Try-On</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030712;
+        }
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .brand-gradient {
+            background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 50%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .glow-button {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .glow-button::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(90deg, #06b6d4, #3b82f6, #a855f7);
+            border-radius: 12px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .glow-button:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-gray-100 min-h-screen selection:bg-cyan-500/30 selection:text-cyan-200">
+
+    <header class="border-b border-gray-800/80 bg-gray-950/60 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="bg-gradient-to-tr from-cyan-500 via-blue-600 to-purple-600 p-2.5 rounded-2xl shadow-xl shadow-cyan-500/10">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xl text-gray-950"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight">
+                        <span class="brand-gradient">ADHYAN</span> <span class="text-white text-xl font-medium tracking-wide">STUDIO PRO</span>
+                    </h1>
+                    <p class="text-[11px] text-cyan-400 font-semibold tracking-wider uppercase">Multi-Model Virtual Try-On Pipeline</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <span class="hidden md:inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-900 border border-gray-800 text-gray-400">
+                    <span class="w-1.5 h-1.5 mr-2 rounded-full bg-emerald-500 animate-pulse"></span> GitHub Pages Engine Sandbox
+                </span>
+                <div class="text-xs font-bold px-3 py-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10 text-purple-300 tracking-wide">
+                    <span class="uppercase">⚡</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 space-y-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass-card rounded-2xl p-6 flex flex-col shadow-2xl relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-500 to-blue-500"></div>
+                    <h3 class="text-base font-bold text-gray-100 mb-4 flex items-center justify-between">
+                        <span class="flex items-center gap-2.5"><i class="fa-solid fa-shirt text-cyan-400"></i> Upload Apparel Asset</span>
+                        <span class="text-xs font-mono text-gray-500">Step 1</span>
+                    </h3>
+                    
+                    <div class="border-2 border-dashed border-gray-800 hover:border-cyan-500/40 rounded-xl relative transition-all duration-300 flex-1 flex flex-col items-center justify-center p-6 min-h-[280px] bg-gray-950/40 group/dropzone">
+                        <input type="file" id="clothing-upload" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-20" onchange="processApparelUpload(this)">
+                        
+                        <div id="clothing-placeholder" class="text-center space-y-3 pointer-events-none transition-transform duration-300 group-hover/dropzone:scale-105">
+                            <div class="w-14 h-14 bg-gray-900/80 rounded-2xl flex items-center justify-center mx-auto border border-gray-800 shadow-inner">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 group-hover/dropzone:text-cyan-400 transition-colors"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-semibold text-gray-200">Drag & drop clothing photo</p>
+                                <p class="text-[11px] text-gray-500 mt-1">Accepts PNG, JPG, JPEG cuts</p>
+                            </div>
+                        </div>
+                        
+                        <img id="clothing-preview" src="#" alt="Clothing Preview" class="hidden max-h-[260px] w-full object-contain rounded-lg shadow-2xl z-10">
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Brand Label</label>
+                            <input type="text" id="meta-brand" value="Polo Ralph Lauren" class="w-full mt-1 bg-gray-950 border border-gray-800 rounded-lg text-xs p-2 text-gray-300 focus:outline-none focus:border-cyan-500">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Color Tone</label>
+                            <input type="text" id="meta-color" value="Pink Striped" class="w-full mt-1 bg-gray-950 border border-gray-800 rounded-lg text-xs p-2 text-gray-300 focus:outline-none focus:border-cyan-500">
+                        </div>
+                    </div>
+
+                    <button id="render-trigger-btn" onclick="executeMultiModelPipeline()" class="glow-button w-full mt-5 bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:opacity-95 text-gray-950 font-extrabold text-sm py-4 px-6 rounded-xl shadow-xl flex items-center justify-center gap-2.5 transition-transform active:scale-[0.98]">
+                        <i class="fa-solid fa-bolt-lightning text-gray-950"></i> Render Multi-Model Simulation
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="glass-card rounded-2xl p-6 h-full flex flex-col shadow-2xl relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-bold text-gray-100 flex items-center gap-2.5">
+                            <i class="fa-solid fa-brain text-purple-400"></i> Adhyan SmartEngine™ Automated Listing Copy
+                        </h3>
+                        <span class="text-xs font-mono text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20">AI Generated</span>
+                    </div>
+
+                    <div class="flex-1 flex flex-col space-y-4">
+                        <div class="flex-1 bg-gray-950/80 border border-gray-800/80 rounded-xl p-4 font-sans text-sm overflow-y-auto max-h-[310px] space-y-3" id="copy-output-box">
+                            <p class="text-gray-500 text-xs italic">Upload a clothing item to auto-generate customized titles, marketing optimization descriptions, and complete system bullet points instantly.</p>
+                        </div>
+                        
+                        <button onclick="copyProductListingText()" class="w-full py-2.5 bg-gray-900 hover:bg-gray-800 text-gray-300 hover:text-white rounded-xl text-xs font-bold border border-gray-800 hover:border-gray-700 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-copy"></i> Copy Complete Copywriting Block
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 shadow-2xl relative">
+            <div class="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-purple-500 to-cyan-500"></div>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gray-800/60 pb-4 mb-6 gap-3">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-100 flex items-center gap-2">
+                        <i class="fa-solid fa-images text-cyan-400"></i> High-Fidelity 5-Model Simulation Matrix
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1">Simultaneous mapping across different base profiles with internal 2x resolution upscaling</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-mono text-gray-400 bg-gray-950 px-3 py-1.5 rounded-lg border border-gray-800">
+                    <i class="fa-solid fa-circle-nodes text-emerald-400"></i> Pipeline Status: <span id="pipeline-status-text" class="text-emerald-400 font-bold">Ready</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                
+                <script>
+                    const modelsMetadata = [
+                        { id: 1, label: 'Model 1: Casual Male Portrait' },
+                        { id: 2, label: 'Model 2: Modern Female Portrait' },
+                        { id: 3, label: 'Model 3: Sharp Formal Male' },
+                        { id: 4, label: 'Model 4: Clean Profile Female' },
+                        { id: 5, label: 'Model 5: Urban Unisex Silhouette' }
+                    ];
+                    
+                    modelsMetadata.forEach(m => {
+                        document.write(`
+                            <div class="bg-gray-950/60 border border-gray-800/80 rounded-xl overflow-hidden flex flex-col group/card transition-all duration-300 hover:border-gray-700 shadow-xl relative">
+                                <div class="p-3 bg-gray-950 border-b border-gray-900 flex items-center justify-between">
+                                    <span class="text-[11px] font-bold text-gray-400 truncate tracking-wide">${m.label}</span>
+                                    <span class="w-2 h-2 rounded-full bg-gray-700" id="status-dot-${m.id}"></span>
+                                </div>
+                                
+                                <div class="relative flex-1 bg-gray-900/30 min-h-[250px] flex items-center justify-center p-2 overflow-hidden">
+                                    <div id="placeholder-box-${m.id}" class="text-center p-4 space-y-2 text-gray-600 transition-opacity flex flex-col items-center justify-center">
+                                        <i class="fa-solid fa-user-tie text-2xl text-gray-700"></i>
+                                        <p class="text-[10px]">Awaiting render sequence...</p>
+                                    </div>
+
+                                    <div id="loader-box-${m.id}" class="hidden absolute inset-0 bg-gray-950/90 z-20 flex-col items-center justify-center p-4 text-center space-y-3">
+                                        <div class="w-8 h-8 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin"></div>
+                                        <div>
+                                            <p class="text-[11px] font-bold text-gray-200">Processing Matrix ${m.id}...</p>
+                                            <p class="text-[9px] text-cyan-400 mt-0.5 font-mono">Upscaling x2 Engine</p>
+                                        </div>
+                                    </div>
+
+                                    <img id="img-output-${m.id}" src="" alt="Output Frame" class="hidden max-h-[240px] w-full object-contain rounded-lg shadow-xl z-10 transition-transform duration-500 group-hover/card:scale-102">
+                                </div>
+
+                                <div id="card-actions-${m.id}" class="hidden p-2 bg-gray-950 border-t border-gray-900 grid grid-cols-2 gap-2">
+                                    <button onclick="triggerFullscreenModal(${m.id})" class="bg-gray-900 hover:bg-gray-800 text-gray-300 py-1.5 px-2 rounded-lg text-[10px] font-medium border border-gray-800 transition flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-expand text-[9px]"></i> View Size
+                                    </button>
+                                    <button onclick="downloadUpscaledAsset(${m.id})" class="bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 py-1.5 px-2 rounded-lg text-[10px] font-bold border border-cyan-500/20 transition flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-download text-[9px]"></i> Download
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    });
+                </script>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-8 border-t border-gray-900 text-center space-y-2">
+        <p class="text-sm font-extrabold tracking-widest text-gray-400 uppercase">
+            POWERED BY <span class="brand-gradient">AI CORE SYSTEMS</span>
+        </p>
+        <p class="text-xs text-gray-600">
+            © 2026 All rights reserved. Scaled and formatted for instantaneous decentralized GitHub Pages compilation.
+        </p>
+    </footer >
+
+    <div id="lightbox-modal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <button onclick="dismissFullscreenModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors text-xl bg-gray-900 border border-gray-800 w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl focus:outline-none z-50">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="relative max-w-full max-h-full flex items-center justify-center" onclick="event.stopPropagation()">
+            <img id="modal-image-view" src="" alt="Full-Scale Render View" class="max-w-[90vw] max-h-[85vh] object-contain rounded-2xl border border-gray-800 shadow-2xl">
+            <div class="absolute -bottom-8 left-0 right-0 text-center text-xs font-mono text-gray-500 tracking-wider">
+                 SuperResolution HD Canvas Pipeline Output
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fileApparelObject = null;
+        let generatedUrlsMap = {};
+        
+        // Root array configurations referencing GitHub relative directory mapping for user deployment
+        const defaultModelsSourcePaths = [
+            'Models/model1.jpg',
+            'Models/model2.jpg',
+            'Models/model3.jpg',
+            'Models/model4.jpg',
+            'Models/model5.jpg'
+        ];
+
+        // Standard App Initialization File Selection Processing 
+        function processApparelUpload(inputElement) {
+            const targetedAsset = inputElement.files[0];
+            if (!targetedAsset) return;
+
+            fileApparelObject = targetedAsset;
+
+            // UI updates
+            const previewEl = document.getElementById('clothing-preview');
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                previewEl.src = e.target.result;
+                previewEl.classList.remove('hidden');
+                document.getElementById('clothing-placeholder').classList.add('hidden');
+                
+                // Automatically compile smart copywriting templates matching exact specs requested
+                generateAutomatedListingMarkup();
+            };
+            fileReader.readAsDataURL(targetedAsset);
+        }
+
+        // Automated Text Copywriter Layout Heuristic Engine
+        function generateAutomatedListingMarkup() {
+            const configuredBrand = document.getElementById('meta-brand').value || 'Polo Ralph Lauren';
+            const configuredColor = document.getElementById('meta-color').value || 'Pink Striped';
+            
+            const structuredTitle = `${configuredBrand} Men's ${configuredColor} Full Sleeve Casual Shirt | Premium Cotton Blend | Regular Fit`;
+            
+            const structuredBody = `Upgrade your wardrobe with this stylish ${configuredBrand} ${configuredColor.toLowerCase()} shirt. Designed with a classic collar, full sleeves, button-down front, and comfortable regular fit, it offers a smart and elegant look for both casual and semi-formal occasions. Soft, breathable fabric ensures all-day comfort while the iconic embroidered logo adds a premium touch.`;
+            
+            const finalHTMLString = `
+                <div class="space-y-4 select-text">
+                    <h4 class="text-sm font-extrabold text-cyan-400 font-mono tracking-tight pb-1 border-b border-gray-900">${structuredTitle}</h4>
+                    <p class="text-xs text-gray-300 leading-relaxed">${structuredBody}</p>
+                    <div class="text-xs text-gray-400 space-y-1 font-sans">
+                        <p class="font-bold text-gray-300">Features:</p>
+                        <p class="flex items-center gap-1 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> <span class="text-gray-400">Full Sleeves</span></p>
+                        <p class="flex items-center gap-1 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> <span class="text-gray-400">Regular Fit</span></p>
+                        <p class="flex items-center gap-1 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> <span class="text-gray-400">Classic Collar</span></p>
+                        <p class="flex items-center gap-1 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> <span class="text-gray-400">Button Closure</span></p>
+                        <p class="flex items-center gap-1 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> <span class="text-gray-400">Soft & Comfortable Fabric</span></p>
+                        <p class="flex items-center gap-1 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> <span class="text-gray-400">Stylish ${configuredColor} Pattern</span></p>
+                        <p class="flex items-center gap-1 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> <span class="text-gray-400">Suitable for Casual, Office & Party Wear</span></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px] font-mono bg-gray-900/60 p-2 rounded-lg border border-gray-800">
+                        <div><span class="text-gray-500">Available Sizes:</span> <span class="text-purple-300 font-bold">S, M, L, XL, XXL</span></div>
+                        <div><span class="text-gray-500">Color Variant:</span> <span class="text-purple-300 font-bold">${configuredColor}</span></div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('copy-output-box').innerHTML = finalHTMLString;
+        }
+
+        // Global multi-progress executor
+        async function executeMultiModelPipeline() {
+            if (!fileApparelObject) {
+                alert('Action Denied: Please drop or upload an apparel clothing file first.');
+                return;
+            }
+
+            setGlobalPipelineLoadingState(true);
+
+            // Execute parallel asynchronous requests for all 5 preconfigured slots
+            const processingPromises = defaultModelsSourcePaths.map((path, index) => {
+                const modelId = index + 1;
+                return processSingleModelTargetRequest(path, modelId);
+            });
+
+            await Promise.all(processingPromises);
+            setGlobalPipelineLoadingState(false);
+        }
+
+        // Single isolated API thread context runner loop
+        async function processSingleModelTargetRequest(modelLocalPath, modelId) {
+            toggleSlotUIState(modelId, 'loading');
+            
+            const sandboxGatewayEndpoint = 'https://demo.api4ai.cloud/virtual-try-on/v1/results';
+            const multipartPayload = new FormData();
+            multipartPayload.append('image-apparel', fileApparelObject);
+
+            try {
+                // Fetch the model asset file locally relative to GitHub pages workspace
+                const localizedModelResponse = await fetch(modelLocalPath);
+                if (!localizedModelResponse.ok) {
+                    throw new Error(`404: Image nahi mili! Path check karo.`);
+                }
+                const modelBlobData = await localizedModelResponse.blob();
+                multipartPayload.append('image', modelBlobData, `model_${modelId}.jpg`);
+
+                // Send request block to pipeline server channel
+                const serverResponse = await fetch(sandboxGatewayEndpoint, {
+                    method: 'POST',
+                    body: multipartPayload
+                });
+
+                if (!serverResponse.ok) {
+                    throw new Error(`API Error: Status ${serverResponse.status}`);
+                }
+
+                const payloadJSON = await serverResponse.json();
+                const simulationEntity = payloadJSON.results?.[0]?.entities?.[0];
+                
+                if (!simulationEntity || !simulationEntity.image) {
+                    throw new Error('API Data missing empty asset frames.');
+                }
+
+                const fileFormatType = (simulationEntity.format || 'png').toLowerCase();
+                const outputRawBase64 = `data:image/${fileFormatType};base64,${simulationEntity.image}`;
+
+                // Pipe asset into the client-side 2x sharpening and scale optimization processor
+                const enhancedHighResDataUrl = await executeHighQualityCanvasUpscale(outputRawBase64);
+                
+                // Track internally and present onto rendering UI target elements
+                generatedUrlsMap[modelId] = enhancedHighResDataUrl;
+                
+                const targetImageElement = document.getElementById(`img-output-${modelId}`);
+                targetImageElement.src = enhancedHighResDataUrl;
+                
+                toggleSlotUIState(modelId, 'success');
+
+            } catch (processingError) {
+                console.error(`Pipeline Thread Error on Matrix Space [${modelId}]:`, processingError);
+                // Custom mobile-friendly error injection passed right through state machine
+                toggleSlotUIState(modelId, 'error', processingError.message);
+            }
+        }
+
+        // Adhyan Canvas Scaling Engineering: Client Side 2x High-Density Upscale 
+        async function executeHighQualityCanvasUpscale(rawBase64String) {
+            return new Promise((resolve, reject) => {
+                const standardImageObj = new Image();
+                standardImageObj.onload = function() {
+                    const transformationCanvas = document.createElement('canvas');
+                    const canvasRenderingContext = transformationCanvas.getContext('2d');
+                    
+                    // Double native image aspect map configurations
+                    const scaleFactor = 2;
+                    transformationCanvas.width = standardImageObj.naturalWidth * scaleFactor;
+                    transformationCanvas.height = standardImageObj.naturalHeight * scaleFactor;
+
+                    // Apply ultra-sharp matrix filters configuration setups
+                    canvasRenderingContext.imageSmoothingEnabled = true;
+                    canvasRenderingContext.imageSmoothingQuality = 'high';
+                    
+                    // Draw double resolution upscaled context frame
+                    canvasRenderingContext.drawImage(standardImageObj, 0, 0, transformationCanvas.width, transformationCanvas.height);
+                    
+                    // Direct export conversion out to base64 canvas stream
+                    const upscaledDataUrl = transformationCanvas.toDataURL('image/png', 1.0);
+                    resolve(upscaledDataUrl);
+                };
+                standardImageObj.onerror = reject;
+                standardImageObj.src = rawBase64String;
+            });
+        }
+
+        // State Machine UI Manager per slot container matrix (Modified for Mobile Live Debugging)
+        function toggleSlotUIState(id, statusState, errorMsg = '') {
+            const placeholderBox = document.getElementById(`placeholder-box-${id}`);
+            const loaderBox = document.getElementById(`loader-box-${id}`);
+            const imageDisplay = document.getElementById(`img-output-${id}`);
+            const actionsBlock = document.getElementById(`card-actions-${id}`);
+            const statusDot = document.getElementById(`status-dot-${id}`);
+
+            if (statusState === 'loading') {
+                placeholderBox.classList.add('hidden');
+                imageDisplay.classList.add('hidden');
+                actionsBlock.classList.add('hidden');
+                loaderBox.classList.remove('hidden');
+                statusDot.className = "w-2 h-2 rounded-full bg-cyan-400 animate-pulse";
+            } else if (statusState === 'success') {
+                loaderBox.classList.add('hidden');
+                placeholderBox.classList.add('hidden');
+                imageDisplay.classList.remove('hidden');
+                actionsBlock.classList.remove('hidden');
+                statusDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+            } else if (statusState === 'error') {
+                loaderBox.classList.add('hidden');
+                imageDisplay.classList.add('hidden');
+                actionsBlock.classList.add('hidden');
+                placeholderBox.classList.remove('hidden');
+                
+                // UI hack layout injected to display precise runtime debugging status logs directly on matrix cells
+                placeholderBox.innerHTML = `
+                    <i class="fa-solid fa-triangle-exclamation text-rose-500 text-lg"></i>
+                    <p class="text-[9px] text-rose-400 font-bold mt-1 break-words px-1 max-w-full">${errorMsg || 'Matrix Fail'}</p>
+                `;
+                statusDot.className = "w-2 h-2 rounded-full bg-rose-500";
+            }
+        }
+
+        function setGlobalPipelineLoadingState(isProcessingState) {
+            const primaryBtn = document.getElementById('render-trigger-btn');
+            const systemLabel = document.getElementById('pipeline-status-text');
+
+            if (isProcessingState) {
+                primaryBtn.disabled = true;
+                primaryBtn.classList.add('opacity-40', 'cursor-not-allowed');
+                primaryBtn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin text-gray-950"></i> Running Multi-Thread AI Engine...`;
+                systemLabel.innerText = "Processing Sequence Active";
+                systemLabel.className = "text-amber-400 font-bold";
+            } else {
+                primaryBtn.disabled = false;
+                primaryBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+                primaryBtn.innerHTML = `<i class="fa-solid fa-bolt-lightning text-gray-950"></i> Render Multi-Model Simulation`;
+                systemLabel.innerText = "Ready";
+                systemLabel.className = "text-emerald-400 font-bold";
+            }
+        }
+
+        // Clipboard Copy Utility Handler
+        function copyProductListingText() {
+            const rawOutputContainerText = document.getElementById('copy-output-box').innerText;
+            if (!fileApparelObject) {
+                alert('Nothing to copy. Load clothing asset data to generate structural mock listings.');
+                return;
+            }
+            navigator.clipboard.writeText(rawOutputContainerText).then(() => {
+                alert('System Notification: Adhyan Copywriting text successfully copied to clipboard system buffer!');
+            });
+        }
+
+        // Overlay Action Open Handlers
+        function triggerFullscreenModal(modelId) {
+            const targetAssetSourceUrl = generatedUrlsMap[modelId];
+            if (!targetAssetSourceUrl) return;
+
+            const modalOverlay = document.getElementById('lightbox-modal');
+            document.getElementById('modal-image-view').src = targetAssetSourceUrl;
+            modalOverlay.classList.remove('hidden');
+            setTimeout(() => { modalOverlay.classList.add('opacity-100'); }, 20);
+        }
+
+        // Close overlay modal sequence
+        function dismissFullscreenModal() {
+            const modalOverlay = document.getElementById('lightbox-modal');
+            modalOverlay.classList.remove('opacity-100');
+            setTimeout(() => { modalOverlay.classList.add('hidden'); }, 300);
+        }
+
+        function downloadUpscaledAsset(modelId) {
+            const targetAssetSourceUrl = generatedUrlsMap[modelId];
+            if (!targetAssetSourceUrl) return;
+
+            const anchorDownloadLink = document.createElement('a');
+            anchorDownloadLink.href = targetAssetSourceUrl;
+            anchorDownloadLink.download = `adhyan_studio_upscaled_model_${modelId}.png`;
+            document.body.appendChild(anchorDownloadLink);
+            anchorDownloadLink.click();
+            document.body.removeChild(anchorDownloadLink);
+        }
+
+        // Close when clicking empty dark bounds space inside backdrop overlay window
+        document.getElementById('lightbox-modal').addEventListener('click', dismissFullscreenModal);
+    </script>
+</body>
+</html>
